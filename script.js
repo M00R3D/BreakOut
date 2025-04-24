@@ -147,8 +147,10 @@ var paddle = {
       this.x = width / 2;
       this.y = height / 2;
       this.r = 16;
-      this.vx = random(-3, 3);
-      this.vy = random(3, 5);
+      this.vx =4;
+      this.vy =4;
+    //   this.vx = random(-3, 3);
+    //   this.vy = random(3, 5);
     }
   
     mover() {
@@ -188,6 +190,7 @@ var paddle = {
     }
   
     verificarColisionBloques() {
+        let r = random(-1,1);
       for (let i = bloques.length - 1; i >= 0; i--) {
         let b = bloques[i];
         if (
@@ -196,7 +199,8 @@ var paddle = {
           this.y + this.r > b.y &&
           this.y - this.r < b.y + b.h
         ) {
-          this.vy *= -1;
+          if(r>0){this.vy *= -1;}
+          this.vx *= -1;
           bloques.splice(i, 1);
           break;
         }
