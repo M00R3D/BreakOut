@@ -75,9 +75,14 @@ var paddle = {
   let nivel = 1;
   let transicion = 0;
   let estadoJuego = "inicio";
+  let controlMode = null;
+  let leftPressed = false;
+  let rightPressed = false;
   
   function setup() {
-    createCanvas(1000, 600);
+    const cnv = createCanvas(1000, 600);
+    cnv.elt.tabIndex = 1000;
+    cnv.elt.focus();
     iniciarJuego();
   }
   
@@ -176,8 +181,15 @@ var paddle = {
     }
   
     let prevX = paddle.x;
-    paddle.x = mouseX;
+    if (controlMode === "mouse") {
+      paddle.x = mouseX;
+    } else if (controlMode === "keyboard") {
+      if (keyIsDown(LEFT_ARROW))  paddle.x -= 8;
+      if (keyIsDown(RIGHT_ARROW)) paddle.x += 8;
+    }
+    paddle.x = constrain(paddle.x, paddle.width/2, width - paddle.width/2);
     paddle.vx = paddle.x - prevX;
+
   
     pelota.mover();
     pelota.rebotar();
@@ -231,7 +243,31 @@ var paddle = {
     }
   }
   
+  function mousePressed() {
+    if (estadoJuego === "inicio") {
+      let btnW = 300, btnH = 50,
+          btnX = width/2 - btnW/2,
+          btnY1 = height/2 - 20,
+          btnY2 = btnY1 + 70;
+      if (mouseX > btnX && mouseX < btnX+btnW) {
+        if (mouseY > btnY1 && mouseY < btnY1+btnH) {
+          controlMode = "mouse";
+          estadoJuego = "juego";
+          iniciarJuego();
+        }
+        if (mouseY > btnY2 && mouseY < btnY2+btnH) {
+          controlMode = "keyboard";
+          estadoJuego = "juego";
+          iniciarJuego();
+        }
+      }
+    }
+  }
   function keyPressed() {
+    if (estadoJuego === "juego" && controlMode === "keyboard") {
+      if (keyCode === LEFT_ARROW)  leftPressed = true;
+      if (keyCode === RIGHT_ARROW) rightPressed = true;
+    }
     if (juegoPerdido && (key === 'Enter' || keyCode === ENTER)) {
       iniciarJuego();
     }
@@ -255,27 +291,58 @@ var paddle = {
         estadoJuego = "juego";
       }
     }
-  }function mostrarPantallaInicio() {
+  }
+  
+  function keyReleased() {
+    if (estadoJuego === "juego" && controlMode === "keyboard") {
+      if (keyCode === LEFT_ARROW)  leftPressed = false;
+      if (keyCode === RIGHT_ARROW) rightPressed = false;
+    }
+  }
+  function mostrarPantallaInicio() {
     fill(255);
     textAlign(CENTER, CENTER);
     textSize(50);
-    text("Bienvenido al Juego de Bloques", width / 2, height / 2 - 100);
-    textSize(28);
-    text("Presiona ENTER para comenzar", width / 2, height / 2);
-    text("Presiona I para ver instrucciones", width / 2, height / 2 + 50);
+    text("Bienvenido al Juego de Bloques", width/2, height/2 - 100);
+  
+    // Botón Mouse
+    let btnW=300, btnH=50, btnX=width/2 - btnW/2, btnY1=height/2 - 20;
+    fill(80);
+    rect(btnX, btnY1, btnW, btnH, 10);
+    fill(255);
+    textSize(24);
+    text("Control: MOUSE", width/2, btnY1 + btnH/2);
+  
+    // Botón Teclado
+    let btnY2 = btnY1 + 70;
+    fill(80);
+    rect(btnX, btnY2, btnW, btnH, 10);
+    fill(255);
+    text("Control: TECLADO", width/2, btnY2 + btnH/2);
+  
+    textSize(16);
+    text("Haz clic para elegir tu modo de control", width/2, btnY2 + btnH + 30);
   }
   
   function mostrarPantallaInstrucciones() {
     fill(255);
     textAlign(CENTER, CENTER);
     textSize(40);
-    text("¿Cómo jugar?", width / 2, 100);
+    text("¿Cómo jugar?", width/2, 100);
+  
     textSize(22);
-    text("Mueve el mouse para mover la paleta", width / 2, 180);
-    text("Destruye todos los bloques con la pelota", width / 2, 220);
-    text("Tienes 3 vidas representadas por corazones", width / 2, 260);
-    text("Si la pelota cae 3 veces, pierdes", width / 2, 300);
-    text("Presiona ESC para volver al inicio", width / 2, 380);
+    text("Destruye todos los bloques con la pelota", width/2, 160);
+    text("Tienes 3 vidas representadas por corazones", width/2, 200);
+    text("Si la pelota cae 3 veces, pierdes", width/2, 240);
+    text("Puntos por bloque: 100 / 300 (fuerte)", width/2, 280);
+  
+    textSize(20);
+    text("Controles:", width/2, 330);
+    text("- Mouse: mueve la paleta libremente", width/2, 360);
+    text("- Teclado: flechas ← →", width/2, 390);
+  
+    textSize(16);
+    text("Presiona ESC para volver al inicio", width/2, 440);
   }
   
 
