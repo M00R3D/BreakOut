@@ -37,6 +37,7 @@ var paddle = {
     // Pelota
     pelota.mover();
     pelota.rebotar();
+    pelota.verificarColisionBloques();
     pelota.verificarColisionPaddle();
     pelota.mostrar();
   
@@ -124,8 +125,27 @@ var paddle = {
         this.vy *= -1;
         this.y = paddle.y - paddle.height / 2 - this.r;
       }
+      
     }
-  
+    verificarColisionBloques() {
+      for (let i = bloques.length - 1; i >= 0; i--) {
+        let b = bloques[i];
+        if (
+          this.x + this.r > b.x &&
+          this.x - this.r < b.x + b.w &&
+          this.y + this.r > b.y &&
+          this.y - this.r < b.y + b.h
+        ) {
+          // Cambiar dirección
+          this.vy *= -1;
+    
+          // Eliminar bloque
+          bloques.splice(i, 1);
+          break; // Evita múltiples colisiones a la vez
+        }
+      }
+    }
+    
     mostrar() {
       noFill();
       stroke(100, 200, 255, 80);
