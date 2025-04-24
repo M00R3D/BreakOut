@@ -129,7 +129,31 @@ var paddle = {
           }
         }
       }
-    }
+    }     else if (nivel === 3) {
+        filas = 5;
+        columnas = 12;
+        bloqueAncho = 60;
+        bloqueAlto = 30;
+        for (let f = 0; f < filas; f++) {
+          for (let c = 0; c < columnas; c++) {
+            let x = 40 + c * (bloqueAncho + 8);
+            let y = 50 + f * (bloqueAlto + 8);
+            let tipoAleatorio = int(random(10));
+            if (tipoAleatorio < 2) {
+              // Bloques invisibles aleatorios
+              continue;
+            } else if (tipoAleatorio < 4) {
+              // Bloques fuertes
+              bloques.push(new BloqueFuerte(x, y, bloqueAncho, bloqueAlto));
+            } else {
+              // Bloques normales que parpadean
+              bloques.push(new BloqueParpadeante(x, y, bloqueAncho, bloqueAlto));
+            }
+          }
+        }
+      }
+  
+    
   }
   
   function draw() {
@@ -235,12 +259,13 @@ var paddle = {
     text("Puntos: " + puntos, width - 20, height - 10);
   
     if (bloques.length === 0) {
-      nivel++;
-      if (nivel > 2) {
-        nivel = 1;
+        nivel++;
+        if (nivel > 3) {
+          nivel = 1;
+        }
+        transicion = 60;
       }
-      transicion = 60;
-    }
+      
   }
   
   function mousePressed() {
@@ -377,14 +402,37 @@ var paddle = {
       super(x, y, w, h);
       this.golpes = 0;
     }
-  
+    
+      
     mostrar() {
       let intensidad = map(this.golpes, 0, 2, 0, 255);
       fill(255, 50 - intensidad / 5, 50);
       rect(this.x, this.y, this.w, this.h);
     }
   }
+  class BloqueParpadeante {
+    constructor(x, y, w, h) {
+      this.x = x;
+      this.y = y;
+      this.w = w;
+      this.h = h;
+      this.visible = true;
+      this.vida = 1;
+    }
   
+    mostrar() {
+      if (frameCount % 30 < 15) {
+        fill(255, 255, 0);
+      } else {
+        fill(255, 0, 255);
+      }
+      rect(this.x, this.y, this.w, this.h, 8);
+    }
+  
+    contiene(px, py) {
+      return px > this.x && px < this.x + this.w && py > this.y && py < this.y + this.h;
+    }
+  }
   class Pelota {
     constructor() {
       this.x = width / 2;
