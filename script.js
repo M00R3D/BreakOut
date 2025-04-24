@@ -60,7 +60,8 @@ var paddle = {
       return this.opacidad <= 0;
     }
   }
-  
+  let estadoGanaste = false;
+
   let pelota;
   let bloques = [];
   let filas = 3;
@@ -129,7 +130,8 @@ var paddle = {
           }
         }
       }
-    }     else if (nivel === 3) {
+    }     
+    else if (nivel === 3) {
         filas = 5;
         columnas = 12;
         bloqueAncho = 60;
@@ -140,18 +142,17 @@ var paddle = {
             let y = 50 + f * (bloqueAlto + 8);
             let tipoAleatorio = int(random(10));
             if (tipoAleatorio < 2) {
-              // Bloques invisibles aleatorios
               continue;
             } else if (tipoAleatorio < 4) {
-              // Bloques fuertes
               bloques.push(new BloqueFuerte(x, y, bloqueAncho, bloqueAlto));
             } else {
-              // Bloques normales que parpadean
               bloques.push(new BloqueParpadeante(x, y, bloqueAncho, bloqueAlto));
             }
           }
         }
+        bloques.push(new BloqueIndestructible(width/2 - 100, height/2 - 50, 200, 100));
       }
+      
   
     
   }
@@ -169,8 +170,14 @@ var paddle = {
       return;
     }
   
-    background(55, 20, 10);
-    if (juegoPerdido) {
+    for (let y = 0; y < height; y++) {
+        let inter = map(y, 0, height, 0, 1);
+        let c = lerpColor(color(200, 230, 255), color(150, 200, 200), inter);
+        stroke(c);
+        line(0, y, width, y);
+      }
+
+      if (juegoPerdido) {
       fill(255);
       textAlign(CENTER, CENTER);
       textSize(48);
@@ -199,7 +206,17 @@ var paddle = {
       text("Presiona ENTER para reiniciar", width / 2, height / 2 + 10);
       return;
     }
-  
+    if (estadoGanaste) {
+        background(0, 150, 0);
+        fill(255);
+        textAlign(CENTER, CENTER);
+        textSize(48);
+        text("¡Ganaste el juego!", width / 2, height / 2 - 40);
+        textSize(24);
+        text("Presiona ENTER para jugar de nuevo", width / 2, height / 2 + 10);
+        return;
+      }
+      
     for (let bloque of bloques) {
       bloque.mostrar();
     }
@@ -257,14 +274,19 @@ var paddle = {
     textAlign(RIGHT, BOTTOM);
     textSize(24);
     text("Puntos: " + puntos, width - 20, height - 10);
-  
+    fill(0);
+    textAlign(LEFT, TOP);
+    textSize(24);
+    text("Nivel: " + nivel, 10, 10);
     if (bloques.length === 0) {
         nivel++;
         if (nivel > 3) {
-          nivel = 1;
+          estadoGanaste = true;
+          return;
         }
         transicion = 60;
-      }
+    }
+    
       
   }
   
@@ -315,9 +337,13 @@ var paddle = {
         iniciarJuego();
         estadoJuego = "juego";
       }
-    }
+    }else if (estadoGanaste && key === 'Enter' || keyCode === ENTER) {
+            // iniciarJuego();
+            estadoJuego="inicio";
+          estadoGanaste = false;
+        }
+      
   }
-  
   function keyReleased() {
     if (estadoJuego === "juego" && controlMode === "keyboard") {
       if (keyCode === LEFT_ARROW)  leftPressed = false;
@@ -433,6 +459,28 @@ var paddle = {
       return px > this.x && px < this.x + this.w && py > this.y && py < this.y + this.h;
     }
   }
+  class BloqueIndestructible {
+    constructor(x, y, w, h) {
+      this.x = x;
+      this.y = y;
+      this.w = w;
+      this.h = h;
+    }
+  
+    mostrar() {
+      fill(0);
+      rect(this.x, this.y, this.w, this.h, 5);
+    }
+  
+    contiene(px, py) {
+      return px > this.x && px < this.x + this.w && py > this.y && py < this.y + this.h;
+    }
+  
+    destruir() {
+      return false;
+    }
+  }
+  
   class Pelota {
     constructor() {
       this.x = width / 2;
@@ -495,12 +543,12 @@ var paddle = {
             b.golpes++;
             if (b.golpes >= 3) {
               bloques.splice(i, 1);
-              puntos += 300;
+              puntos += 1;
               textosPuntos.push(new TextoPunto(this.x, this.y, "+300"));
             }
           } else {
             bloques.splice(i, 1);
-            puntos += 100;
+            puntos += 1;
             textosPuntos.push(new TextoPunto(this.x, this.y, "+100"));
           }
           if (r > 0) {
