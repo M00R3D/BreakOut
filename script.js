@@ -4,6 +4,7 @@ var paddle = {
     width: 280,
     height: 30
   };
+  
   class Corazon3D {
     constructor(x, y) {
       this.x = x;
@@ -33,6 +34,32 @@ var paddle = {
     }
   }
   
+  class TextoPunto {
+    constructor(x, y, texto) {
+      this.x = x;
+      this.y = y;
+      this.texto = texto;
+      this.opacidad = 255;
+      this.color = color(random(255), random(255), random(255));
+    }
+  
+    actualizar() {
+      this.y -= 1;
+      this.opacidad -= 4;
+    }
+  
+    dibujar() {
+      fill(red(this.color), green(this.color), blue(this.color), this.opacidad);
+      textSize(20);
+      textAlign(CENTER);
+      text(this.texto, this.x, this.y);
+    }
+  
+    estaMuerto() {
+      return this.opacidad <= 0;
+    }
+  }
+  
   let pelota;
   let bloques = [];
   let filas = 5;
@@ -40,8 +67,10 @@ var paddle = {
   let bloqueAncho = 80;
   let bloqueAlto = 40;
   let vidas = 3;
+  let puntos = 0;
   let corazones = [];
   let juegoPerdido = false;
+  let textosPuntos = [];
   
   function setup() {
     createCanvas(1000, 600);
@@ -50,10 +79,12 @@ var paddle = {
   
   function iniciarJuego() {
     vidas = 3;
+    puntos = 0;
     juegoPerdido = false;
     pelota = new Pelota();
     bloques = [];
     corazones = [];
+    textosPuntos = [];
     for (let i = 0; i < vidas; i++) {
       corazones.push(new Corazon3D(60 + i * 40, 540));
     }
@@ -77,14 +108,17 @@ var paddle = {
       text("Presiona ENTER para reiniciar", width / 2, height / 2 + 10);
       return;
     }
+  
     for (let bloque of bloques) {
       bloque.mostrar();
     }
+  
     pelota.mover();
     pelota.rebotar();
     pelota.verificarColisionBloques();
     pelota.verificarColisionPaddle();
     pelota.mostrar();
+  
     paddle.x = mouseX;
     let steps = 30;
     for (let i = 0; i < steps; i++) {
@@ -105,9 +139,23 @@ var paddle = {
       vertex(paddle.x - paddle.width / 2 + 10, paddle.y + yOffset + h / 2);
       endShape(CLOSE);
     }
+  
     for (let i = 0; i < vidas; i++) {
       corazones[i].dibujar();
     }
+  
+    for (let i = textosPuntos.length - 1; i >= 0; i--) {
+      textosPuntos[i].actualizar();
+      textosPuntos[i].dibujar();
+      if (textosPuntos[i].estaMuerto()) {
+        textosPuntos.splice(i, 1);
+      }
+    }
+  
+    fill(255);
+    textAlign(RIGHT, BOTTOM);
+    textSize(24);
+    text("Puntos: " + puntos, width - 20, height - 10);
   }
   
   function keyPressed() {
@@ -115,7 +163,6 @@ var paddle = {
       iniciarJuego();
     }
   }
-  
   
   class Bloque {
     constructor(x, y, w, h) {
@@ -147,10 +194,8 @@ var paddle = {
       this.x = width / 2;
       this.y = height / 2;
       this.r = 16;
-      this.vx =4;
-      this.vy =4;
-    //   this.vx = random(-3, 3);
-    //   this.vy = random(3, 5);
+      this.vx = 4;
+      this.vy = 4;
     }
   
     mover() {
@@ -190,7 +235,7 @@ var paddle = {
     }
   
     verificarColisionBloques() {
-        let r = random(-1,1);
+      let r = random(-1, 1);
       for (let i = bloques.length - 1; i >= 0; i--) {
         let b = bloques[i];
         if (
@@ -199,9 +244,13 @@ var paddle = {
           this.y + this.r > b.y &&
           this.y - this.r < b.y + b.h
         ) {
-          if(r>0){this.vy *= -1;}
+          if (r > 0) {
+            this.vy *= -1;
+          }
           this.vx *= -1;
           bloques.splice(i, 1);
+          puntos += 100;
+          textosPuntos.push(new TextoPunto(this.x, this.y, "+100"));
           break;
         }
       }
