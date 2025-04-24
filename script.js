@@ -74,6 +74,7 @@ var paddle = {
   let textosPuntos = [];
   let nivel = 1;
   let transicion = 0;
+  let estadoJuego = "inicio";
   
   function setup() {
     createCanvas(1000, 600);
@@ -141,6 +142,26 @@ var paddle = {
   
     background(55, 20, 10);
     if (juegoPerdido) {
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(48);
+      text("¡Perdiste!", width / 2, height / 2 - 40);
+      textSize(24);
+      text("Presiona ENTER para reiniciar", width / 2, height / 2 + 10);
+      return;
+    }
+
+    if (estadoJuego === "inicio") {
+      mostrarPantallaInicio();
+      return;
+    }
+  
+    if (estadoJuego === "instrucciones") {
+      mostrarPantallaInstrucciones();
+      return;
+    }
+  
+    if (estadoJuego === "perdido") {
       fill(255);
       textAlign(CENTER, CENTER);
       textSize(48);
@@ -217,7 +238,47 @@ var paddle = {
     if (key === 'w' || key === 'W') {
       bloques = [];
     }
+    if (estadoJuego === "inicio") {
+      if (key === 'Enter' || keyCode === ENTER) {
+        iniciarJuego();
+        estadoJuego = "juego";
+      } else if (key === 'i' || key === 'I') {
+        estadoJuego = "instrucciones";
+      }
+    } else if (estadoJuego === "instrucciones") {
+      if (key === ESCAPE) {
+        estadoJuego = "inicio";
+      }
+    } else if (estadoJuego === "perdido") {
+      if (key === 'Enter' || keyCode === ENTER) {
+        iniciarJuego();
+        estadoJuego = "juego";
+      }
+    }
+  }function mostrarPantallaInicio() {
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(50);
+    text("Bienvenido al Juego de Bloques", width / 2, height / 2 - 100);
+    textSize(28);
+    text("Presiona ENTER para comenzar", width / 2, height / 2);
+    text("Presiona I para ver instrucciones", width / 2, height / 2 + 50);
   }
+  
+  function mostrarPantallaInstrucciones() {
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(40);
+    text("¿Cómo jugar?", width / 2, 100);
+    textSize(22);
+    text("Mueve el mouse para mover la paleta", width / 2, 180);
+    text("Destruye todos los bloques con la pelota", width / 2, 220);
+    text("Tienes 3 vidas representadas por corazones", width / 2, 260);
+    text("Si la pelota cae 3 veces, pierdes", width / 2, 300);
+    text("Presiona ESC para volver al inicio", width / 2, 380);
+  }
+  
+
   
   class Bloque {
     constructor(x, y, w, h) {
@@ -285,6 +346,7 @@ var paddle = {
           corazones.pop();
           if (vidas === 0) {
             juegoPerdido = true;
+            estadoJuego = "perdido";
           }
         }
       }
