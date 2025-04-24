@@ -12,24 +12,26 @@ var paddle = {
     }
   
     dibujar() {
-    push();
-    translate(this.x, this.y + 12); 
-    let escala = 1 + 0.05 * sin(frameCount * 0.1);
-    scale(escala);
-    let ciclo = frameCount % 90;
-    if (ciclo < 30) {
-        fill(255, 0, 0);}
-    else if (ciclo < 60) {fill(0);
-    } else {fill(255);}
-    beginShape();
-    vertex(0, 0); // punta inferior
-    bezierVertex(-15, -25, -30, -50, 0, -40);
-    bezierVertex(30, -50, 15, -25, 0, 0);
-    endShape(CLOSE);
-    pop();
+      push();
+      translate(this.x, this.y + 12);
+      let escala = 1 + 0.05 * sin(frameCount * 0.1);
+      scale(escala);
+      let ciclo = frameCount % 90;
+      if (ciclo < 30) {
+        fill(255, 0, 0);
+      } else if (ciclo < 60) {
+        fill(0);
+      } else {
+        fill(255);
+      }
+      beginShape();
+      vertex(0, 0);
+      bezierVertex(-15, -25, -30, -50, 0, -40);
+      bezierVertex(30, -50, 15, -25, 0, 0);
+      endShape(CLOSE);
+      pop();
     }
   }
-  
   
   let pelota;
   let bloques = [];
@@ -39,15 +41,22 @@ var paddle = {
   let bloqueAlto = 40;
   let vidas = 3;
   let corazones = [];
-    
+  let juegoPerdido = false;
+  
   function setup() {
     createCanvas(1000, 600);
+    iniciarJuego();
+  }
+  
+  function iniciarJuego() {
+    vidas = 3;
+    juegoPerdido = false;
     pelota = new Pelota();
+    bloques = [];
+    corazones = [];
     for (let i = 0; i < vidas; i++) {
-        corazones.push(new Corazon3D(60 + i * 40, 540));
-      }
-    
-    // Crear bloques
+      corazones.push(new Corazon3D(60 + i * 40, 540));
+    }
     for (let f = 0; f < filas; f++) {
       for (let c = 0; c < columnas; c++) {
         let x = 60 + c * (bloqueAncho + 10);
@@ -58,20 +67,24 @@ var paddle = {
   }
   
   function draw() {
-    background(55, 20, 10); // fondo oscuro
-    
-    // Dibujar bloques
-    for (let bloque of bloques) {
-        bloque.mostrar();
+    background(55, 20, 10);
+    if (juegoPerdido) {
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(48);
+      text("¡Perdiste!", width / 2, height / 2 - 40);
+      textSize(24);
+      text("Presiona ENTER para reiniciar", width / 2, height / 2 + 10);
+      return;
     }
-    
-    // Pelota
+    for (let bloque of bloques) {
+      bloque.mostrar();
+    }
     pelota.mover();
     pelota.rebotar();
     pelota.verificarColisionBloques();
     pelota.verificarColisionPaddle();
     pelota.mostrar();
-    
     paddle.x = mouseX;
     let steps = 30;
     for (let i = 0; i < steps; i++) {
@@ -93,13 +106,20 @@ var paddle = {
       endShape(CLOSE);
     }
     for (let i = 0; i < vidas; i++) {
-        corazones[i].dibujar();
-      }
-}
+      corazones[i].dibujar();
+    }
+  }
+  
+  function keyPressed() {
+    if (juegoPerdido && (key === 'Enter' || keyCode === ENTER)) {
+      iniciarJuego();
+    }
+  }
+  
   
   class Bloque {
     constructor(x, y, w, h) {
-        this.x = x;
+      this.x = x;
       this.y = y;
       this.w = w;
       this.h = h;
@@ -107,15 +127,14 @@ var paddle = {
       this.baseG = random(180, 255);
       this.baseB = random(180, 255);
     }
-    
-    mostrar() {
-        let steps = 10;
-        for (let i = 0; i < steps; i++) {
-            let inter = i / steps;
-            let r = this.baseR + 30 * sin(inter * PI + frameCount * 0.01);
-            let g = this.baseG + 30 * sin(inter * PI + frameCount * 0.015 + 1);
-        let b = this.baseB + 30 * sin(inter * PI + frameCount * 0.02 + 2);
   
+    mostrar() {
+      let steps = 10;
+      for (let i = 0; i < steps; i++) {
+        let inter = i / steps;
+        let r = this.baseR + 30 * sin(inter * PI + frameCount * 0.01);
+        let g = this.baseG + 30 * sin(inter * PI + frameCount * 0.015 + 1);
+        let b = this.baseB + 30 * sin(inter * PI + frameCount * 0.02 + 2);
         fill(constrain(r, 0, 255), constrain(g, 0, 255), constrain(b, 0, 255));
         noStroke();
         rect(this.x, this.y + i * (this.h / steps), this.w, this.h / steps);
@@ -146,6 +165,13 @@ var paddle = {
       }
       if (this.y + this.r >= height) {
         this.vy *= -1;
+        if (vidas > 0) {
+          vidas -= 1;
+          corazones.pop();
+          if (vidas === 0) {
+            juegoPerdido = true;
+          }
+        }
       }
     }
   
@@ -159,8 +185,8 @@ var paddle = {
         this.vy *= -1;
         this.y = paddle.y - paddle.height / 2 - this.r;
       }
-      
     }
+  
     verificarColisionBloques() {
       for (let i = bloques.length - 1; i >= 0; i--) {
         let b = bloques[i];
@@ -170,16 +196,13 @@ var paddle = {
           this.y + this.r > b.y &&
           this.y - this.r < b.y + b.h
         ) {
-          // Cambiar dirección
           this.vy *= -1;
-    
-          // Eliminar bloque
           bloques.splice(i, 1);
-          break; // Evita múltiples colisiones a la vez
+          break;
         }
       }
     }
-    
+  
     mostrar() {
       noFill();
       stroke(100, 200, 255, 80);
