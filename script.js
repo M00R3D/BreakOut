@@ -63,7 +63,7 @@ var paddle = {
   
   let pelota;
   let bloques = [];
-  let filas = 5;
+  let filas = 3;
   let columnas = 10;
   let bloqueAncho = 80;
   let bloqueAlto = 40;
@@ -72,6 +72,8 @@ var paddle = {
   let corazones = [];
   let juegoPerdido = false;
   let textosPuntos = [];
+  let nivel = 1;
+  let transicion = 0;
   
   function setup() {
     createCanvas(1000, 600);
@@ -82,6 +84,11 @@ var paddle = {
     vidas = 3;
     puntos = 0;
     juegoPerdido = false;
+    nivel = 1;
+    crearNivel();
+  }
+  
+  function crearNivel() {
     pelota = new Pelota();
     bloques = [];
     corazones = [];
@@ -89,16 +96,49 @@ var paddle = {
     for (let i = 0; i < vidas; i++) {
       corazones.push(new Corazon3D(60 + i * 40, 540));
     }
-    for (let f = 0; f < filas; f++) {
-      for (let c = 0; c < columnas; c++) {
-        let x = 60 + c * (bloqueAncho + 10);
-        let y = 40 + f * (bloqueAlto + 10);
-        bloques.push(new Bloque(x, y, bloqueAncho, bloqueAlto));
+  
+    if (nivel === 1) {
+      filas = 3;
+      bloqueAncho = 80;
+      bloqueAlto = 40;
+      for (let f = 0; f < filas; f++) {
+        for (let c = 0; c < columnas; c++) {
+          let x = 60 + c * (bloqueAncho + 10);
+          let y = 40 + f * (bloqueAlto + 10);
+          bloques.push(new Bloque(x, y, bloqueAncho, bloqueAlto));
+        }
+      }
+    } else if (nivel === 2) {
+      filas = 6;
+      bloqueAncho = 60;
+      bloqueAlto = 30;
+      for (let f = 0; f < filas; f++) {
+        for (let c = 0; c < columnas; c++) {
+          let x = 60 + c * (bloqueAncho + 10);
+          let y = 40 + f * (bloqueAlto + 10);
+          if ((f + c) % 5 === 0) {
+            bloques.push(new BloqueFuerte(x, y, bloqueAncho + 20, bloqueAlto + 10));
+          } else {
+            bloques.push(new Bloque(x, y, bloqueAncho, bloqueAlto));
+          }
+        }
       }
     }
   }
   
   function draw() {
+    if (transicion > 0) {
+      for (let i = 0; i < 10; i++) {
+        fill(random(255), random(255), random(255), 100);
+        rect(0, 0, width, height);
+      }
+      transicion--;
+      if (transicion === 0) {
+        crearNivel();
+      }
+      return;
+    }
+  
     background(55, 20, 10);
     if (juegoPerdido) {
       fill(255);
@@ -160,11 +200,22 @@ var paddle = {
     textAlign(RIGHT, BOTTOM);
     textSize(24);
     text("Puntos: " + puntos, width - 20, height - 10);
+  
+    if (bloques.length === 0) {
+      nivel++;
+      if (nivel > 2) {
+        nivel = 1;
+      }
+      transicion = 60;
+    }
   }
   
   function keyPressed() {
     if (juegoPerdido && (key === 'Enter' || keyCode === ENTER)) {
       iniciarJuego();
+    }
+    if (key === 'w' || key === 'W') {
+      bloques = [];
     }
   }
   
@@ -190,6 +241,19 @@ var paddle = {
         noStroke();
         rect(this.x, this.y + i * (this.h / steps), this.w, this.h / steps);
       }
+    }
+  }
+  
+  class BloqueFuerte extends Bloque {
+    constructor(x, y, w, h) {
+      super(x, y, w, h);
+      this.golpes = 0;
+    }
+  
+    mostrar() {
+      let intensidad = map(this.golpes, 0, 2, 0, 255);
+      fill(255, 50 - intensidad / 5, 50);
+      rect(this.x, this.y, this.w, this.h);
     }
   }
   
@@ -250,13 +314,22 @@ var paddle = {
           this.y + this.r > b.y &&
           this.y - this.r < b.y + b.h
         ) {
+          if (b instanceof BloqueFuerte) {
+            b.golpes++;
+            if (b.golpes >= 3) {
+              bloques.splice(i, 1);
+              puntos += 300;
+              textosPuntos.push(new TextoPunto(this.x, this.y, "+300"));
+            }
+          } else {
+            bloques.splice(i, 1);
+            puntos += 100;
+            textosPuntos.push(new TextoPunto(this.x, this.y, "+100"));
+          }
           if (r > 0) {
             this.vy *= -1;
           }
           this.vx *= -1;
-          bloques.splice(i, 1);
-          puntos += 100;
-          textosPuntos.push(new TextoPunto(this.x, this.y, "+100"));
           break;
         }
       }
