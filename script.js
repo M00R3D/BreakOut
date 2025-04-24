@@ -4,6 +4,32 @@ var paddle = {
     width: 280,
     height: 30
   };
+  class Corazon3D {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.angulo = random(TWO_PI);
+    }
+  
+    dibujar() {
+    push();
+    translate(this.x, this.y + 12); 
+    let escala = 1 + 0.05 * sin(frameCount * 0.1);
+    scale(escala);
+    let ciclo = frameCount % 90;
+    if (ciclo < 30) {
+        fill(255, 0, 0);}
+    else if (ciclo < 60) {fill(0);
+    } else {fill(255);}
+    beginShape();
+    vertex(0, 0); // punta inferior
+    bezierVertex(-15, -25, -30, -50, 0, -40);
+    bezierVertex(30, -50, 15, -25, 0, 0);
+    endShape(CLOSE);
+    pop();
+    }
+  }
+  
   
   let pelota;
   let bloques = [];
@@ -11,11 +37,16 @@ var paddle = {
   let columnas = 10;
   let bloqueAncho = 80;
   let bloqueAlto = 40;
-  
+  let vidas = 3;
+  let corazones = [];
+    
   function setup() {
     createCanvas(1000, 600);
     pelota = new Pelota();
-  
+    for (let i = 0; i < vidas; i++) {
+        corazones.push(new Corazon3D(60 + i * 40, 540));
+      }
+    
     // Crear bloques
     for (let f = 0; f < filas; f++) {
       for (let c = 0; c < columnas; c++) {
@@ -28,19 +59,19 @@ var paddle = {
   
   function draw() {
     background(55, 20, 10); // fondo oscuro
-  
+    
     // Dibujar bloques
     for (let bloque of bloques) {
-      bloque.mostrar();
+        bloque.mostrar();
     }
-  
+    
     // Pelota
     pelota.mover();
     pelota.rebotar();
     pelota.verificarColisionBloques();
     pelota.verificarColisionPaddle();
     pelota.mostrar();
-  
+    
     paddle.x = mouseX;
     let steps = 30;
     for (let i = 0; i < steps; i++) {
@@ -61,11 +92,14 @@ var paddle = {
       vertex(paddle.x - paddle.width / 2 + 10, paddle.y + yOffset + h / 2);
       endShape(CLOSE);
     }
-  }
+    for (let i = 0; i < vidas; i++) {
+        corazones[i].dibujar();
+      }
+}
   
   class Bloque {
     constructor(x, y, w, h) {
-      this.x = x;
+        this.x = x;
       this.y = y;
       this.w = w;
       this.h = h;
@@ -73,13 +107,13 @@ var paddle = {
       this.baseG = random(180, 255);
       this.baseB = random(180, 255);
     }
-  
+    
     mostrar() {
-      let steps = 10;
-      for (let i = 0; i < steps; i++) {
-        let inter = i / steps;
-        let r = this.baseR + 30 * sin(inter * PI + frameCount * 0.01);
-        let g = this.baseG + 30 * sin(inter * PI + frameCount * 0.015 + 1);
+        let steps = 10;
+        for (let i = 0; i < steps; i++) {
+            let inter = i / steps;
+            let r = this.baseR + 30 * sin(inter * PI + frameCount * 0.01);
+            let g = this.baseG + 30 * sin(inter * PI + frameCount * 0.015 + 1);
         let b = this.baseB + 30 * sin(inter * PI + frameCount * 0.02 + 2);
   
         fill(constrain(r, 0, 255), constrain(g, 0, 255), constrain(b, 0, 255));
