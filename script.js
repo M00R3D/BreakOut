@@ -1,3 +1,6 @@
+// Examen de Graficación y multimedia IDS TV 8vo Semestre Dasc Uabcs
+// Moore Garay Job         Salgado Castillo Isaias
+
 var paddle = {
     x: 500,
     y: 490,
@@ -79,7 +82,7 @@ var paddle = {
   let controlMode = null;
   let leftPressed = false;
   let rightPressed = false;
-  
+  let spd=0;
   function setup() {
     const cnv = createCanvas(1000, 600);
     cnv.elt.tabIndex = 1000;
@@ -142,7 +145,8 @@ var paddle = {
             let y = 50 + f * (bloqueAlto + 8);
             let tipoAleatorio = int(random(10));
             if (tipoAleatorio < 2) {
-              continue;
+              bloques.push(new BloqueIndestructible(x, y, bloqueAncho, bloqueAlto));
+            //   continue;
             } else if (tipoAleatorio < 4) {
               bloques.push(new BloqueFuerte(x, y, bloqueAncho, bloqueAlto));
             } else {
@@ -150,7 +154,8 @@ var paddle = {
             }
           }
         }
-        bloques.push(new BloqueIndestructible(width/2 - 100, height/2 - 50, 200, 100));
+        bloques.push(new BloqueIndestructible(-20, 0 , 20, height));
+        bloques.push(new BloqueIndestructible(width, 0 , 20, height));
       }
       
   
@@ -158,6 +163,7 @@ var paddle = {
   }
   
   function draw() {
+    if(nivel==1){spd=0;}else if(nivel==2){spd=1;}else if (nivel==3){spd=2;}
     if (transicion > 0) {
       for (let i = 0; i < 10; i++) {
         fill(random(255), random(255), random(255), 100);
@@ -410,6 +416,8 @@ var paddle = {
     }
   
     mostrar() {
+        if(pelota.x>width){pelota.x-=2;}
+        if(pelota.x<0){pelota.x+=2;}
       let steps = 10;
       for (let i = 0; i < steps; i++) {
         let inter = i / steps;
@@ -491,13 +499,17 @@ var paddle = {
     }
   
     mover() {
-      this.x += this.vx;
-      this.y += this.vy;
+      this.x += this.vx +spd;
+      this.y += this.vy; +spd
+      this.vx = constrain(this.vx, -8, 8);
+this.vy = constrain(this.vy, -8, 8);
+
     }
   
     rebotar() {
       if (this.x - this.r <= 0 || this.x + this.r >= width) {
         this.vx *= -1;
+        this.x  -=3;
       }
       if (this.y - this.r <= 0) {
         this.vy *= -1;
@@ -544,12 +556,12 @@ var paddle = {
             if (b.golpes >= 3) {
               bloques.splice(i, 1);
               puntos += 1;
-              textosPuntos.push(new TextoPunto(this.x, this.y, "+300"));
+              textosPuntos.push(new TextoPunto(this.x, this.y, "+1"));
             }
           } else {
             bloques.splice(i, 1);
             puntos += 1;
-            textosPuntos.push(new TextoPunto(this.x, this.y, "+100"));
+            textosPuntos.push(new TextoPunto(this.x, this.y, "+1"));
           }
           if (r > 0) {
             this.vy *= -1;
