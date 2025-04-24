@@ -2,7 +2,8 @@ var paddle = {
     x: 500,
     y: 490,
     width: 280,
-    height: 30
+    height: 30,
+    vx: 0
   };
   
   class Corazon3D {
@@ -113,13 +114,16 @@ var paddle = {
       bloque.mostrar();
     }
   
+    let prevX = paddle.x;
+    paddle.x = mouseX;
+    paddle.vx = paddle.x - prevX;
+  
     pelota.mover();
     pelota.rebotar();
     pelota.verificarColisionBloques();
     pelota.verificarColisionPaddle();
     pelota.mostrar();
   
-    paddle.x = mouseX;
     let steps = 30;
     for (let i = 0; i < steps; i++) {
       let inter = i / steps;
@@ -231,6 +235,8 @@ var paddle = {
       ) {
         this.vy *= -1;
         this.y = paddle.y - paddle.height / 2 - this.r;
+        this.vx += paddle.vx * 0.2;
+        this.vx = constrain(this.vx, -8, 8);
       }
     }
   
