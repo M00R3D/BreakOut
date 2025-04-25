@@ -87,6 +87,7 @@ var paddle = {
     const cnv = createCanvas(1000, 600);
     cnv.elt.tabIndex = 1000;
     cnv.elt.focus();
+    frameRate(60);
     iniciarJuego();
   }
   
@@ -507,12 +508,19 @@ this.vy = constrain(this.vy, -8, 8);
     }
   
     rebotar() {
-      if (this.x - this.r <= 0 || this.x + this.r >= width) {
+      // Rebote horizontal
+      if (this.x - this.r <= 0) {
         this.vx *= -1;
-        this.x  -=3;
+        this.x = this.r;
       }
+      if (this.x + this.r >= width) {
+        this.vx *= -1;
+        this.x = width - this.r;
+      }
+      // Rebote techo
       if (this.y - this.r <= 0) {
         this.vy *= -1;
+        this.y = this.r;
       }
       if (this.y + this.r >= height) {
         this.vy *= -1;
